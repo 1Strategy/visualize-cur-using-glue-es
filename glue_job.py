@@ -12,25 +12,25 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import sys
-import re
-import boto3
-import botocore
-from collections import deque
-import elasticsearch
 import datetime
 import json
-from elasticsearch import ElasticsearchException
-from elasticsearch import helpers
-from elasticsearch.connection import create_ssl_context
-from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
+import re
+import sys
+from collections import deque
+
+import boto3
+import botocore
+import elasticsearch
 from awsglue.context import GlueContext
 from awsglue.dynamicframe import DynamicFrame
 from awsglue.job import Job
-from pyspark.sql import Window
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
+from elasticsearch import ElasticsearchException, helpers
+from elasticsearch.connection import create_ssl_context
+from pyspark.context import SparkContext
 from pyspark.sql import functions as F
+from pyspark.sql import Window
 
 # Glue job init
 args = getResolvedOptions(sys.argv, ['JOB_NAME', 'source_bucket', 'report_folder_prefix', 'index_name_prefix_template', 'index_pattern_prefix', 'es_domain_url'])
@@ -63,7 +63,7 @@ def doc_generator(source):
             '_type': 'cur',
             '_source': updated_row
         }
-        
+
         yield new_row
 
 def bulk_upload(records):
@@ -78,12 +78,12 @@ def bulk_upload(records):
     )
     try:
         result = helpers.bulk(
-            es, 
-            doc_generator(records), 
-            stats_only=True, 
-            raise_on_error=False, 
-            raise_on_exception=False, 
-            max_retries=1, 
+            es,
+            doc_generator(records),
+            stats_only=True,
+            raise_on_error=False,
+            raise_on_exception=False,
+            max_retries=1,
             initial_backoff=1,
             chunk_size=1000
         )
@@ -137,7 +137,7 @@ def switch_alias():
         )
     except ElasticsearchException as ex:
         raise ex
-    
+
     if current_index_name != "":
         es.delete(
             index=current_index_name
