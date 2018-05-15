@@ -146,16 +146,16 @@ def switch_alias():
 # Get latest report folder
 next_month = (now.month + 1)%12 if (now.month + 1)%12 else 12
 next_year = now.year if now.month < 12 else (now.year + 1)
-date_folder = str(now.year)+str(now.month)+"01-"+str(next_year)+str(next_month)+"01"
+date_folder = str(now.year)+'{:02d}'.format(now.month)+"01-"+str(next_year)+'{:02d}'.format(next_month)+"01"
 assembly_id = get_assembly_id(source_bucket, report_folder_prefix + "/" + date_folder + "/")
-report_folder = "s3://" + source_bucket + "/" + report_folder_prefix + "/" + date_folder + "/" + assembly_id + "/"
+report_folder = report_folder_prefix + "/" + date_folder + "/" + assembly_id + "/"
 print report_folder
 
 # Get all report partitions
 s3_client = boto3.client(service_name='s3', region_name='us-west-2')
 file_names = []
 for o in s3_client.list_objects(Bucket=source_bucket, Prefix=report_folder)['Contents']:
-    if o['key'].endswith(".gz"):
+    if o['Key'].endswith(".gz"):
         file_names.append("s3://" + source_bucket + "/" + o['Key'])
 
 dynamic_frame0 = glueContext.create_dynamic_frame.from_options(connection_type="s3", connection_options={"paths": file_names}, format="CSV", format_options={"withHeader": True}, transformation_ctx = "dynamic_frame0")
